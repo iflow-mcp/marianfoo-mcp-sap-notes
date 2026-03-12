@@ -1,0 +1,1 @@
+{"serverConfig": {"mcpServers": {"sap-note-search": {"command": "npx", "args": ["-y", "@iflow-mcp/marianfoo-sap-note-search-mcp"], "values": {}}}}}
