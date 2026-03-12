@@ -52,27 +52,30 @@ class SapNoteMcpServer {
    * Load configuration from environment variables
    */
   private loadConfig(): ServerConfig {
-    // For local testing, make PFX_PATH and PFX_PASSPHRASE optional
-    const pfxPath = process.env.PFX_PATH || './certs/test.pfx';
-    const pfxPassphrase = process.env.PFX_PASSPHRASE || 'test_passphrase';
+    const requiredEnvVars = ['PFX_PATH', 'PFX_PASSPHRASE'];
+    const missing = requiredEnvVars.filter(envVar => !process.env[envVar]);
+    
+    if (missing.length > 0) {
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    }
 
     // Resolve PFX path relative to the project root (where package.json is)
     const projectRoot = join(__dirname, '..');
-    let resolvedPfxPath = pfxPath;
+    let pfxPath = process.env.PFX_PATH!;
 
     // Expand tilde to user home on all platforms
-    if (resolvedPfxPath.startsWith('~')) {
+    if (pfxPath.startsWith('~')) {
       const home = process.env.HOME || process.env.USERPROFILE || '';
-      resolvedPfxPath = join(home, resolvedPfxPath.slice(2));
+      pfxPath = join(home, pfxPath.slice(2));
     }
 
     // If it's not absolute, resolve against project root (works on win32 and posix)
-    if (!isAbsolute(resolvedPfxPath)) {
-      resolvedPfxPath = join(projectRoot, resolvedPfxPath);
+    if (!isAbsolute(pfxPath)) {
+      pfxPath = join(projectRoot, pfxPath);
     }
 
     logger.warn('🔧 Configuration loaded:', {
-      pfxPath: resolvedPfxPath,
+      pfxPath: pfxPath,
       projectRoot: projectRoot,
       workingDir: process.cwd()
     });
@@ -91,8 +94,8 @@ class SapNoteMcpServer {
     logger.warn(`🖥️  Headful mode: ${headful}`);
     
     return {
-      pfxPath: resolvedPfxPath,
-      pfxPassphrase: pfxPassphrase,
+      pfxPath: pfxPath,
+      pfxPassphrase: process.env.PFX_PASSPHRASE!,
       maxJwtAgeH: parseInt(process.env.MAX_JWT_AGE_H || '12'),
       headful: headful,
       logLevel: process.env.LOG_LEVEL || 'info'
@@ -314,3 +317,10 @@ if (isDirectRun) {
 }
 
 export { SapNoteMcpServer };
+
+
+
+
+
+
+
